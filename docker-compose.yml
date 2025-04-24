@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+  ethereum-signer:
+    build: .
+    env_file:
+      - ./.env
+    ports:
+      - "3001:3001"
+    networks:
+      - network_public
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+  network_public:
+    external: true
