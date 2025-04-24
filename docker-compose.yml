@@ -1,11 +1,13 @@
 version: '3.3'
 services:
   ethereum-signer:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    image: node:16-alpine
+    command: sh -c "npm init -y && npm install express ethers && node server.js"
     ports:
       - "3001:3001"
     environment:
       - HL_PRIVATE_KEY=${HL_PRIVATE_KEY}
       - PORT=3001
+    working_dir: /app
+    volumes:
+      - .:/app
