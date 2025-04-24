@@ -6,4 +6,4 @@ services:
       - "3001:3001"
     environment:
       - HL_PRIVATE_KEY=${HL_PRIVATE_KEY}
-      - PORT=3001
+      - PORT=${PORT}
