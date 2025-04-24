@@ -1,9 +1,7 @@
 version: '3.7'
 services:
   ethereum-signer:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "3001:3001"
     environment:
@@ -12,20 +10,6 @@ services:
       - NODE_ENV=production
     networks:
       - network_public
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:3001"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    volumes:
-      - ./:/app
 
 networks:
   network_public:
