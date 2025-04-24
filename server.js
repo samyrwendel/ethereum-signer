@@ -13,8 +13,17 @@ if (!PRIVATE_KEY) {
 }
 const wallet = new Wallet(PRIVATE_KEY);
 
+// Guarda o momento de inicialização do servidor
+const startTime = new Date();
+
 app.get("/", (_, res) => {
-  res.json({ status: "Ethereum Signer está online" });
+  const uptime = Math.floor((new Date() - startTime) / 1000);
+  res.json({ 
+    status: "Ethereum Signer está online",
+    address: wallet.address,
+    uptime: `${uptime} segundos`,
+    versao: "1.0.0"
+  });
 });
 
 app.post("/sign", async (req, res) => {
@@ -44,4 +53,5 @@ app.post("/sign", async (req, res) => {
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🟢 Ethereum Signer rodando na porta ${PORT}`);
+  console.log(`🔑 Endereço da carteira: ${wallet.address}`);
 });
