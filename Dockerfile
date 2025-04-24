@@ -18,6 +18,8 @@ COPY package*.json ./
 RUN npm install --production && \
     npm cache clean --force
 
+RUN npm install express ethers
+
 # Copia código fonte
 COPY server.js ./
 
