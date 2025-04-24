@@ -1,6 +1,6 @@
 # Ethereum Signer
 
-Serviço para assinatura de mensagens Ethereum.
+Serviço para assinatura de mensagens Ethereum, desenvolvido para criar assinaturas seguras através de uma API REST.
 
 ## Estrutura do Projeto
 
@@ -85,6 +85,15 @@ Assinar uma mensagem.
   "nonce": 12345
 }
 ```
+
+## Segurança
+
+Este serviço lida com chaves privadas Ethereum, portanto:
+
+1. Sempre use HTTPS em ambientes de produção
+2. Limite o acesso à API com firewalls e autenticação
+3. Monitore logs de acesso regularmente
+4. Nunca compartilhe a chave privada em código ou repositórios
 
 ## Manutenção e Atualizações
 
