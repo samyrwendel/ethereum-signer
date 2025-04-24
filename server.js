@@ -1,57 +1,38 @@
-// server.js
-const express = require("express");
-const { Wallet } = require("ethers");
+# Usar imagem base do Node.js 16 Alpine (versão leve do Linux)
+FROM node:16-alpine
 
-const app = express();
-app.use(express.json());
+# Definir diretório de trabalho dentro do container
+WORKDIR /app
 
-const PORT        = process.env.PORT || 3001;
-const PRIVATE_KEY = process.env.HL_PRIVATE_KEY;
-if (!PRIVATE_KEY) {
-  console.error("❌ HL_PRIVATE_KEY não definida!");
-  process.exit(1);
-}
-const wallet = new Wallet(PRIVATE_KEY);
+# Instalar pacotes de sistema necessários para compilação (se precisar)
+RUN apk add --no-cache tini
 
-// Guarda o momento de inicialização do servidor
-const startTime = new Date();
+# Copiar arquivos de dependências
+COPY package*.json ./
 
-app.get("/", (_, res) => {
-  const uptime = Math.floor((new Date() - startTime) / 1000);
-  res.json({ 
-    status: "Ethereum Signer está online",
-    address: wallet.address,
-    uptime: `${uptime} segundos`,
-    versao: "1.0.0"
-  });
-});
+# Limpar cache e instalar dependências de forma reproduzível
+RUN npm ci --only=production \
+    && npm cache clean --force
 
-app.post("/sign", async (req, res) => {
-  try {
-    const { message } = req.body;
-    if (!message) {
-      return res.status(400).json({ error: "Campo message é obrigatório" });
-    }
+# Copiar código fonte do servidor
+COPY server.js ./
 
-    // valida JSON básico
-    const obj = JSON.parse(message);
-    if (!obj.nonce) {
-      return res.status(400).json({ error: "message deve conter nonce" });
-    }
+# Definir variáveis de ambiente com valores padrão
+ENV PORT=3001 \
+    NODE_ENV=production
 
-    const signature = await wallet.signMessage(message);
-    return res.json({
-      address: wallet.address,
-      signature,
-      nonce: obj.nonce,
-    });
-  } catch (error) {
-    console.error("Erro ao assinar:", error);
-    return res.status(500).json({ error: error.message });
-  }
-});
+# Expor porta configurada
+EXPOSE ${PORT}
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🟢 Ethereum Signer rodando na porta ${PORT}`);
-  console.log(`🔑 Endereço da carteira: ${wallet.address}`);
-});
+# Usar tini como init para tratamento de sinais do sistema
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Comando para iniciar o servidor
+CMD ["node", "server.js"]
+
+# Definir usuário não-root para segurança
+USER node
+
+# Adicionar healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s \
+  CMD node -e "require('http').get('http://localhost:${PORT}', (r) => { if (r.statusCode !== 200) throw new Error('Healthcheck failed'); })" || exit 1
