@@ -13,7 +13,7 @@ const express = require('express');
 const { Wallet } = require('ethers');
 const app = express();
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 const PRIVATE_KEY = process.env.HL_PRIVATE_KEY;
 
 app.use(express.json());
