@@ -2,13 +2,22 @@ version: '3.7'
 
 services:
   ethereum-signer:
+    # builda a imagem a partir do Dockerfile acima
     build: .
+    # nome opcional para facilitar identificação
+    image: samyrwendel/ethereum-signer:latest
+
     ports:
       - "3001:3001"
+
+    # passe a variável sem expor .env em disco
     environment:
-      HL_PRIVATE_KEY: "fa4865d1detc...a59664e3e0d7"
+      HL_PRIVATE_KEY: "${HL_PRIVATE_KEY}"
+      PORT:          "3001"
+
     networks:
       - network_public
+
     deploy:
       mode: replicated
       replicas: 1
