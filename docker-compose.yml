@@ -1,9 +1,11 @@
 version: '3.3'
 services:
   ethereum-signer:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "3001:3001"
     environment:
       - HL_PRIVATE_KEY=${HL_PRIVATE_KEY}
-      - PORT=${PORT}
+      - PORT=3001
