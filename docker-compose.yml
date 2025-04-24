@@ -9,5 +9,3 @@ services:
       - HL_PRIVATE_KEY=${HL_PRIVATE_KEY}
       - PORT=3001
     working_dir: /app
-    volumes:
-      - .:/app
