@@ -1,38 +1,49 @@
-# Usar imagem base do Node.js 16 Alpine (versão leve do Linux)
-FROM node:16-alpine
+const express = require('express');
+const { Wallet } = require('ethers');
+const app = express();
 
-# Definir diretório de trabalho dentro do container
-WORKDIR /app
+const PORT = process.env.PORT || 3001;
+const PRIVATE_KEY = process.env.HL_PRIVATE_KEY;
 
-# Instalar pacotes de sistema necessários para compilação (se precisar)
-RUN apk add --no-cache tini
+console.log('Iniciando Ethereum Signer');
+console.log(`Porta: ${PORT}`);
 
-# Copiar arquivos de dependências
-COPY package*.json ./
+if (!PRIVATE_KEY) {
+  console.error('ERRO: Chave privada não definida');
+  process.exit(1);
+}
 
-# Limpar cache e instalar dependências de forma reproduzível
-RUN npm ci --only=production \
-    && npm cache clean --force
+app.use(express.json());
 
-# Copiar código fonte do servidor
-COPY server.js ./
+app.get("/", (req, res) => {
+  console.log('Rota raiz acessada');
+  res.json({ status: "Ethereum Signer está online" });
+});
 
-# Definir variáveis de ambiente com valores padrão
-ENV PORT=3001 \
-    NODE_ENV=production
+app.post("/sign", async (req, res) => {
+  try {
+    console.log('Recebendo solicitação de assinatura');
+    const { message } = req.body;
 
-# Expor porta configurada
-EXPOSE ${PORT}
+    if (!message) {
+      console.warn('Mensagem não fornecida');
+      return res.status(400).json({ error: "Mensagem é obrigatória" });
+    }
 
-# Usar tini como init para tratamento de sinais do sistema
-ENTRYPOINT ["/sbin/tini", "--"]
+    const wallet = new Wallet(PRIVATE_KEY);
+    const signature = await wallet.signMessage(message);
 
-# Comando para iniciar o servidor
-CMD ["node", "server.js"]
+    console.log('Mensagem assinada com sucesso');
+    res.json({
+      address: wallet.address,
+      signature
+    });
+  } catch (error) {
+    console.error('Erro na assinatura:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
-# Definir usuário não-root para segurança
-USER node
-
-# Adicionar healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s \
-  CMD node -e "require('http').get('http://localhost:${PORT}', (r) => { if (r.statusCode !== 200) throw new Error('Healthcheck failed'); })" || exit 1
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Ethereum Signer rodando na porta ${PORT}`);
+});
