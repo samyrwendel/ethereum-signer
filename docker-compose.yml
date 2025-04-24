@@ -3,18 +3,40 @@ version: '3.7'
 services:
   ethereum-signer:
     build: .
+    image: ethereum-signer:latest
+    container_name: ethereum-signer
+    restart: unless-stopped
     env_file:
       - ./.env
     ports:
       - "3001:3001"
     networks:
       - network_public
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     deploy:
       mode: replicated
       replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        window: 120s
       placement:
         constraints:
           - node.role == manager
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   network_public:
